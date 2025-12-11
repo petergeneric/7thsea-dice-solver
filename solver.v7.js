@@ -263,6 +263,13 @@ function showError(message) {
 
 function showResults(dice, allowFifteens, result) {
   const resultsDiv = document.getElementById('results');
+  const announcement = document.getElementById('results-announcement');
+
+  // Announce success count to screen readers
+  const successText = result.score === 1 ? '1 success' : `${result.score} successes`;
+  if (announcement) {
+    announcement.textContent = successText;
+  }
 
   let html = '';
 
@@ -309,6 +316,12 @@ window.solveDice = async function (allowFifteens = false, solveBtn) {
   // Hide existing results
   const resultsDiv = document.getElementById('results');
   resultsDiv.classList.remove('show');
+
+  // Clear screen reader announcement for fresh announcement on new result
+  const announcement = document.getElementById('results-announcement');
+  if (announcement) {
+    announcement.textContent = '';
+  }
 
 
   const diceInput = document.getElementById('diceInput').value;

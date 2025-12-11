@@ -327,6 +327,18 @@
             color: #667eea;
         }
 
+        .sr-only {
+            position: absolute;
+            width: 1px;
+            height: 1px;
+            padding: 0;
+            margin: -1px;
+            overflow: hidden;
+            clip: rect(0, 0, 0, 0);
+            white-space: nowrap;
+            border: 0;
+        }
+
         </style>
     </head>
 <body>
@@ -349,9 +361,9 @@
             </div>
         </form>
 
-        <div class="error" id="error"></div>
+        <div class="error" id="error" role="alert"></div>
 
-        <div class="loading" id="loading">
+        <div class="loading" id="loading" aria-live="polite" aria-label="Progress animation">
             <div id="dice-animation">
                 <div id="dice-animation-top-row"></div>
                 <div id="dice-animation-groups"></div>
@@ -360,7 +372,8 @@
             <div class="loading-text">Rearranging dice...</div>
         </div>
 
-        <div class="results" id="results">
+        <div id="results-announcement" class="sr-only" aria-live="assertive" aria-atomic="true"></div>
+        <div class="results" id="results" aria-live="polite">
             <div class="result-section" id="result10">
                 <h3>Standard Mode (≥10 = 1 success)</h3>
                 <div class="result-item">
@@ -651,6 +664,9 @@
           document.getElementById('diceInput').value = diceParam.replace(/[^0-9+,]/g, '').replace(/\++/, ',').replace(/,+$/, '');
           // Automatically solve (default to tens mode)
           solveDice(false, findTensBtn);
+        } else {
+          // Focus the input for quick entry
+          document.getElementById('diceInput').focus();
         }
 
 
