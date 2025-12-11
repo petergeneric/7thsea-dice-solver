@@ -1,0 +1,699 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>7th Sea Dice Solver</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
+            min-height: 100vh;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            padding: 20px;
+            position: relative;
+        }
+
+        body::before {
+            content: '';
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: url('map.jpeg') center/cover no-repeat;
+            filter: blur(2px);
+            z-index: -1;
+        }
+
+        .container {
+            background: white;
+            border-radius: 12px;
+            box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
+            max-width: 600px;
+            width: 100%;
+            padding: 40px;
+        }
+
+        h1 {
+            color: #333;
+            margin-bottom: 10px;
+            font-size: 2rem;
+        }
+
+        .subtitle {
+            color: #666;
+            margin-bottom: 30px;
+            font-size: 0.95rem;
+        }
+
+        label {
+            display: block;
+            margin-bottom: 8px;
+            color: #555;
+            font-weight: 500;
+        }
+
+        textarea {
+            width: 100%;
+            padding: 12px;
+            border: 2px solid #e0e0e0;
+            border-radius: 6px;
+            font-family: 'Monaco', 'Courier New', monospace;
+            font-size: 16px;
+            resize: vertical;
+            min-height: 100px;
+            transition: border-color 0.3s;
+        }
+
+        textarea:focus {
+            outline: none;
+            border-color: #667eea;
+        }
+
+        button {
+            background: linear-gradient(-45deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            border: none;
+            padding: 14px 28px;
+            border-radius: 6px;
+            font-size: 16px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: transform 0.2s, box-shadow 0.2s;
+        }
+
+        #findFifteensBtn {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        }
+
+
+        button:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 6px 20px rgba(102, 126, 234, 0.4);
+        }
+
+        button:active {
+            transform: translateY(0);
+        }
+
+        button:disabled {
+            opacity: 0.6;
+            cursor: not-allowed;
+            transform: none;
+        }
+
+        .results {
+            margin-top: 30px;
+            display: none;
+        }
+
+        .results.show {
+            display: block;
+        }
+
+        .result-section {
+            background: #f8f9fa;
+            border-radius: 8px;
+            padding: 20px;
+            margin-bottom: 15px;
+            display: none;
+        }
+
+        .result-section.show {
+            display: block;
+        }
+
+        .result-section h3 {
+            color: #333;
+            margin-bottom: 12px;
+            font-size: 1.1rem;
+        }
+
+        .result-item {
+            margin-bottom: 8px;
+            color: #555;
+            line-height: 1.6;
+        }
+
+        .result-item strong {
+            color: #333;
+        }
+
+        .success-count {
+            font-size: 1.5rem;
+            color: #667eea;
+            font-weight: bold;
+        }
+
+        .error {
+            background: #fee;
+            border: 2px solid #fcc;
+            border-radius: 6px;
+            padding: 15px;
+            margin-top: 20px;
+            color: #c33;
+            display: none;
+        }
+
+        .error.show {
+            display: block;
+        }
+
+        .example {
+            background: #f0f0f0;
+            padding: 8px 12px;
+            border-radius: 4px;
+            font-family: 'Monaco', 'Courier New', monospace;
+            font-size: 0.9rem;
+            color: #666;
+            margin-top: 5px;
+            cursor: pointer;
+            transition: background-color 0.2s, color 0.2s;
+        }
+
+        .example:hover {
+            background: rgba(102, 126, 234, 0.6);
+            color: white;
+        }
+        .groups {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 8px;
+            margin-top: 8px;
+        }
+
+        .group {
+            background: white;
+            border: 2px solid #667eea;
+            border-radius: 6px;
+            padding: 8px 12px;
+            font-weight: 600;
+        }
+
+        .group.success-1 {
+            background: #d4edda;
+            border-color: #28a745;
+        }
+
+        .group.success-2 {
+            background: #fff3cd;
+            position: relative;
+            overflow: hidden;
+            border-color: #ffc107;
+            animation: pulse 2s infinite;
+            box-shadow: 0 0 15px rgba(255, 193, 7, 0.5);
+        }
+
+        .loading {
+            display: none;
+            text-align: center;
+            padding: 40px 20px;
+        }
+
+        .loading.show {
+            display: block;
+        }
+
+        .loading-text {
+            margin-top: 15px;
+            color: #667eea;
+            font-size: 1.1rem;
+            font-weight: 600;
+        }
+
+        #dice-animation {
+            position: relative;
+            width: 100%;
+            height: 250px;
+            margin: 0 auto;
+        }
+
+        #dice-animation-top-row {
+            position: absolute;
+            top: 10px;
+            left: 50%;
+            transform: translateX(-50%);
+            display: flex;
+            gap: 5px;
+            flex-wrap: wrap;
+            justify-content: center;
+            max-width: 100%;
+        }
+
+        #dice-animation-groups {
+            position: absolute;
+            top: 70px;
+            left: 50%;
+            transform: translateX(-50%);
+            display: flex;
+            gap: 15px;
+            flex-wrap: wrap;
+            justify-content: center;
+            max-width: 100%;
+        }
+
+        #dice-animation-dice {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            pointer-events: none;
+            z-index: 10;
+        }
+
+        .dice-animation-group {
+            min-width: 50px;
+            min-height: 50px;
+            border: 2px dashed #667eea;
+            border-radius: 6px;
+            padding: 8px;
+            display: flex;
+            flex-wrap: wrap;
+            gap: 4px;
+            align-content: flex-start;
+            background: rgba(102, 126, 234, 0.05);
+        }
+
+        .dice-animation-die {
+            width: 30px;
+            height: 30px;
+            background: linear-gradient(145deg, #667eea, #764ba2);
+            border: 2px solid #667eea;
+            border-radius: 4px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 14px;
+            font-weight: bold;
+            color: #fff;
+            position: absolute;
+            transition: left 0.2s ease-in-out, top 0.2s ease-in-out, transform 0.2s ease-in-out;
+            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
+            cursor: default;
+            pointer-events: auto;
+        }
+
+        .dice-animation-die.moving {
+            z-index: 100;
+        }
+
+        .dice-animation-die.returning {
+            transition: left 0.1s ease-in-out, top 0.1s ease-in-out, transform 0.1s ease-in-out;
+        }
+
+        footer {
+            margin-top: 20px;
+            text-align: center;
+            color: #999;
+            font-size: 0.85rem;
+        }
+
+        footer a {
+            color: #999;
+            text-decoration: none;
+            transition: color 0.2s;
+        }
+
+        footer a:hover {
+            color: #667eea;
+        }
+
+        </style>
+    </head>
+<body>
+    <div class="container">
+        <h1>7th Sea Dice Solver</h1>
+        <p class="subtitle"><em>Avast!</em> Enter thon dice roll to find yer raises (or for Roll20 <a id="roll20_bookmarklet" href="#">use this bookmarklet</a>, or <a href="roll20.userscript.js">this Firefox Tampermonkey User Script</a>)</p>
+
+        <form id="diceForm">
+            <label for="diceInput">Dice Roll:</label>
+            <textarea
+                id="diceInput"
+                placeholder="Enter dice values (comma-separated)&#10;Example: 7, 7, 8, 5, 3, 6"
+                rows="4"
+            ></textarea>
+            <div class="example">Example: 7, 7, 8, 5, 3, 6</div>
+
+            <div style="display: flex; gap: 10px; margin-top: 20px;">
+                <button type="button" id="findTensBtn" style="flex: 1;">Find Tens</button>
+                <button type="button" id="findFifteensBtn" style="flex: 1;">Find Fifteens</button>
+            </div>
+        </form>
+
+        <div class="error" id="error"></div>
+
+        <div class="loading" id="loading">
+            <div id="dice-animation">
+                <div id="dice-animation-top-row"></div>
+                <div id="dice-animation-groups"></div>
+                <div id="dice-animation-dice"></div>
+            </div>
+            <div class="loading-text">Rearranging dice...</div>
+        </div>
+
+        <div class="results" id="results">
+            <div class="result-section" id="result10">
+                <h3>Standard Mode (≥10 = 1 success)</h3>
+                <div class="result-item">
+                    <strong>Raises:</strong> <span class="success-count" id="tens"></span>
+                </div>
+                <div class="result-item">
+                    <strong>Groupings:</strong>
+                    <div class="groups" id="groups10"></div>
+                </div>
+            </div>
+
+            <div class="result-section" id="result15">
+                <h3>Fifteens Mode (≥15 = 2, ≥10 = 1)</h3>
+                <div class="result-item">
+                    <strong>Raises:</strong> <span class="success-count" id="fifteens"></span>
+                </div>
+                <div class="result-item">
+                    <strong>Groupings:</strong>
+                    <div class="groups" id="groups15"></div>
+                </div>
+            </div>
+        </div>
+        
+        <footer>
+            <a href="https://www.drivethrurpg.com/en/product/185462/7th-sea-core-rulebook-second-edition" target="_blank" rel="noopener noreferrer">7th Sea &copy; Chaosium</a> &middot;
+            <a href="https://github.com/petergeneric" target="_blank" rel="noopener noreferrer">Dice Solver &copy; Peter Wright</a>
+        </footer>
+    </div>
+
+    <script>
+      document.addEventListener('DOMContentLoaded', () => {
+
+        // Dice animation functions
+        let diceAnimationState = {
+          dice: [],
+          groups: [],
+          isAnimating: false,
+          animationLoop: null,
+          diceValues: []
+        };
+
+        function createDiceAnimation(diceValues) {
+          const topRow = document.getElementById('dice-animation-top-row');
+          const diceContainer = document.getElementById('dice-animation-dice');
+
+          diceContainer.innerHTML = '';
+          diceAnimationState.diceValues = diceValues;
+          diceAnimationState.dice = diceValues.map((value, index) => {
+            const die = document.createElement('div');
+            die.className = 'dice-animation-die';
+            die.textContent = value;
+            die.dataset.value = value;
+            die.dataset.index = index;
+            diceContainer.appendChild(die);
+            return die;
+          });
+
+          // Wait for next frame to ensure elements are rendered
+          requestAnimationFrame(() => {
+            requestAnimationFrame(() => {
+              layoutDiceInTopRow();
+            });
+          });
+        }
+
+        function createGroups(numGroups) {
+          const groupsContainer = document.getElementById('dice-animation-groups');
+          groupsContainer.innerHTML = '';
+          diceAnimationState.groups = [];
+          for (let i = 0; i < numGroups; i++) {
+            const group = document.createElement('div');
+            group.className = 'dice-animation-group';
+            group.dataset.groupIndex = i;
+            groupsContainer.appendChild(group);
+            diceAnimationState.groups.push(group);
+          }
+        }
+
+        function setAbsolutePosition(die, x, y, rotation = 0, dieSize = 30) {
+          const container = document.getElementById('dice-animation');
+          const containerRect = container.getBoundingClientRect();
+          const halfSize = dieSize / 2;
+          die.style.left = (x - containerRect.left - halfSize) + 'px';
+          die.style.top = (y - containerRect.top - halfSize) + 'px';
+          die.style.transform = `rotate(${rotation}deg)`;
+        }
+
+        function layoutDiceInTopRow() {
+          const container = document.getElementById('dice-animation');
+          const containerRect = container.getBoundingClientRect();
+
+          // Default sizing
+          let dieSize = 30;
+          let spacing = 35;
+
+          // Calculate how much space we need
+          const availableWidth = containerRect.width - 40; // Leave some padding
+          const neededWidth = diceAnimationState.dice.length * spacing;
+
+          // Scale down if needed
+          if (neededWidth > availableWidth) {
+            const scale = availableWidth / neededWidth;
+            dieSize = Math.max(15, Math.floor(dieSize * scale)); // Minimum 15px
+            spacing = Math.floor(spacing * scale);
+          }
+
+          const totalWidth = diceAnimationState.dice.length * spacing;
+          const startX = containerRect.left + (containerRect.width - totalWidth) / 2 + spacing / 2;
+          const startY = containerRect.top + 20;
+
+          diceAnimationState.dice.forEach((die, index) => {
+            // Apply scaled size
+            die.style.width = dieSize + 'px';
+            die.style.height = dieSize + 'px';
+            die.style.fontSize = Math.floor(dieSize * 0.47) + 'px';
+
+            const x = startX + index * spacing;
+            const y = startY;
+            setAbsolutePosition(die, x, y, 0, dieSize);
+          });
+
+          // Store the current scale for use during animation
+          diceAnimationState.currentDieSize = dieSize;
+        }
+
+        function calculateGroupPositions() {
+          return diceAnimationState.groups.map(group => {
+            const rect = group.getBoundingClientRect();
+            const radius = (rect.width / 2) - 2;
+            const centerX = rect.left + rect.width / 2;
+            const centerY = rect.top + rect.height / 2;
+
+            // Start at a random angle for variety
+            let currentAngle = Math.random() * Math.PI * 2;
+            const angleIncrement = (36 * Math.PI) / 180; // 36 degrees in radians
+
+            return {
+              element: group,
+              rect: rect,
+              getNextPosition() {
+                // Use current angle and increment for next die
+                const angle = currentAngle;
+                currentAngle += angleIncrement;
+
+                // Vary distance slightly (70-95% of radius) for more natural look
+                const distance = radius * (0.7 + Math.random() * 0.25);
+
+                // Convert polar to cartesian coordinates
+                const x = centerX + Math.cos(angle) * distance;
+                const y = centerY + Math.sin(angle) * distance;
+
+                const rotation = (Math.random() - 0.5) * 30;
+                return { x, y, rotation };
+              }
+            };
+          });
+        }
+
+        function shuffleArray(array) {
+          const shuffled = [...array];
+          for (let i = shuffled.length - 1; i > 0; i--) {
+            const j = Math.floor(Math.random() * (i + 1));
+            [shuffled[i], shuffled[j]] = [shuffled[j], shuffled[i]];
+          }
+          return shuffled;
+        }
+
+        async function animateDiceRun() {
+          if (diceAnimationState.isAnimating) return;
+          diceAnimationState.isAnimating = true;
+
+          const totalValue = diceAnimationState.dice.reduce((sum, die) => sum + parseInt(die.dataset.value), 0);
+          const numGroups = Math.floor(totalValue / 10);
+          createGroups(numGroups);
+
+          await new Promise(resolve => setTimeout(resolve, 50));
+
+          const groupPositions = calculateGroupPositions();
+          const availableDice = [...diceAnimationState.dice];
+          const groupSums = new Array(diceAnimationState.groups.length).fill(0);
+
+          for (let i = 0; i < diceAnimationState.dice.length; i++) {
+            const randomDieIndex = Math.floor(Math.random() * availableDice.length);
+            const die = availableDice.splice(randomDieIndex, 1)[0];
+            const dieValue = parseInt(die.dataset.value);
+
+            const suitableGroups = groupSums
+              .map((sum, idx) => ({ sum, idx }))
+              .filter(g => g.sum < 10);
+
+            let targetGroupIndex;
+            if (suitableGroups.length > 0) {
+              const randomSuitable = suitableGroups[Math.floor(Math.random() * suitableGroups.length)];
+              targetGroupIndex = randomSuitable.idx;
+            } else {
+              targetGroupIndex = Math.floor(Math.random() * diceAnimationState.groups.length);
+            }
+
+            const targetGroup = groupPositions[targetGroupIndex];
+            groupSums[targetGroupIndex] += dieValue;
+
+            die.classList.add('moving');
+
+            await new Promise(resolve => setTimeout(resolve, 20));
+
+            const targetPos = targetGroup.getNextPosition();
+            setAbsolutePosition(die, targetPos.x, targetPos.y, targetPos.rotation, diceAnimationState.currentDieSize || 30);
+
+            await new Promise(resolve => setTimeout(resolve, 1500 / diceAnimationState.dice.length));
+
+            if (groupSums.every(sum => sum >= 10)) {
+              break;
+            }
+          }
+
+          await new Promise(resolve => setTimeout(resolve, 100));
+
+          const shuffledDice = shuffleArray(diceAnimationState.dice);
+          diceAnimationState.dice = shuffledDice;
+
+          shuffledDice.forEach(die => {
+            die.classList.remove('moving');
+            die.classList.add('returning');
+          });
+
+          layoutDiceInTopRow();
+
+          await new Promise(resolve => setTimeout(resolve, 100));
+
+          diceAnimationState.dice.forEach(die => {
+            die.classList.remove('returning');
+          });
+
+          document.getElementById('dice-animation-groups').innerHTML = '';
+
+          diceAnimationState.isAnimating = false;
+        }
+
+        async function startDiceAnimation() {
+          while (diceAnimationState.animationLoop) {
+            await animateDiceRun();
+            await new Promise(resolve => setTimeout(resolve, 50));
+          }
+        }
+
+        function showDiceAnimation(diceValues) {
+          diceAnimationState.animationLoop = true;
+          createDiceAnimation(diceValues);
+          startDiceAnimation();
+        }
+
+        function hideDiceAnimation() {
+          diceAnimationState.animationLoop = false;
+          diceAnimationState.isAnimating = false;
+        }
+
+        // Expose functions to window for solver module
+        window.showDiceAnimation = showDiceAnimation;
+        window.hideDiceAnimation = hideDiceAnimation;
+
+        // Handle button clicks
+        findTensBtn.addEventListener('click', async () => {
+          await solveDice(false, findTensBtn);
+        });
+
+        findFifteensBtn.addEventListener('click', async () => {
+          await solveDice(true, findFifteensBtn);
+        });
+
+        // Handle example click
+        document.querySelector('.example').addEventListener('click', () => {
+          const inputEl = document.getElementById('diceInput');
+          inputEl.value = '7, 7, 8, 5, 3, 6';
+          inputEl.focus();
+        });
+
+        // Initialize on page load
+
+        // Extract URL parameters
+        function getUrlParameter(name) {
+          const urlParams = new URLSearchParams(window.location.search);
+          return urlParams.get(name);
+        }
+
+        const diceParam = getUrlParameter('dice');
+        if (diceParam) {
+          // Pre-populate the textarea with URL parameter
+          document.getElementById('diceInput').value = diceParam.replace(/[^0-9+,]/g, '').replace(/\++/, ',').replace(/,+$/, '');
+          // Automatically solve (default to tens mode)
+          solveDice(false, findTensBtn);
+        }
+
+
+        let bookmarklet = () => {
+          (function () {
+            function linkify(el) {
+              function cleanText(text) {
+                return text.replace(/[^0-9+,]/g, '').replace(/\++/, ',').replace(/,+$/, '');
+              }
+
+              if (el.style.cursor === 'help')
+                return;
+              else
+                el.style.cursor = 'help';
+
+              el.addEventListener('click', (e) => {
+                e.preventDefault();
+                window.open(`https://petergeneric.github.io/7thsea-dice-solver/?dice=${encodeURIComponent(cleanText(el.innerText))}`, '_blank').opener = null;
+              });
+            }
+
+            document.querySelectorAll('.formula.formattedformula').forEach(linkify);
+
+            new MutationObserver((mutations) => {
+              mutations.forEach((mutation) => {
+                mutation.addedNodes.forEach((node) => {
+                  if (node.nodeType === 1 && node.matches('.formula.formattedformula'))
+                    linkify(node);
+                  if (node.querySelectorAll)
+                    node.querySelectorAll('.formula.formattedformula').forEach(linkify);
+                });
+              });
+            }).observe(document.getElementById('textchat'), {
+              childList: true,
+              subtree: true
+            });
+          })();
+        }
+
+        document.getElementById("roll20_bookmarklet").href = `javascript:(${encodeURIComponent(bookmarklet.toString().replace(/[\r\n\s]+/g, ' '))})()`
+      });
+    </script>
+    
+    <script type="module" src="solver.v7.js"></script>
+</body>
+</html>

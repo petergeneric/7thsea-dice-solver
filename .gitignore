@@ -1,0 +1,4 @@
+node_modules/
+Makefile.local
+.idea/
+*.java
