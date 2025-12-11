@@ -18,6 +18,13 @@ Simply load up [the live site](https://petergeneric.github.io/7thsea-dice-solver
 
 ## How it works
 
-The site loads up [minizinc.js](https://github.com/MiniZinc/minizinc-js) and runs a constraint optimisation solver trying to maximise the user's score. This is a reasonably simple problem to model as constraints.
+The site runs a constraint optimisation solver on the dice rolls, aiming to maximise the user's score. This is a reasonably simple problem to model as constraints.
 
 While the solver is running, an animation plays (although the solver is fast enough that this rarely gets a chance to play for long, except for very large dice rolls)
+
+## Credits
+
+The following projects were instrumental:
+
+- [minizinc.js](https://github.com/MiniZinc/minizinc-js)
+- [Nortantis Fantasy Map Generator](https://github.com/jeheydorn/nortantis) - Map background
