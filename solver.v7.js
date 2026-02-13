@@ -283,7 +283,7 @@ function showResults(dice, allowFifteens, result) {
   const announcement = document.getElementById('results-announcement');
 
   // Announce success count to screen readers
-  const successText = result.score === 1 ? '1 success' : `${result.score} successes`;
+  const successText = result.score === 1 ? '1 Raise' : `${result.score} Raises`;
   if (announcement) {
     announcement.textContent = successText;
   }
@@ -302,8 +302,7 @@ function showResults(dice, allowFifteens, result) {
   html += `
         <div class="result-section show">
             <div class="result-title">${allowFifteens ? 'Tens or Fifteens' : 'Tens'} Mode</div>
-            <div class="score">Score: ${result.score} ${result.score === 1 ? 'success' : 'successes'}</div>
-            <div class="solve-time">Solved in ${result.solveTime}ms</div>
+            <div class="score">Score: ${result.score} ${result.score === 1 ? 'Raise' : 'Raises'}</div>
             <div class="groups">
                 ${result.groups.map(group => {
     const sum = group.reduce((a, b) => a + b, 0);
