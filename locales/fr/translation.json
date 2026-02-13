@@ -1,0 +1,60 @@
+{
+  "app": {
+    "title": "Solveur de dés 7th Sea"
+  },
+  "subtitle": {
+    "avast": "Avast !",
+    "prefix": "Saisissez votre jet de dés pour trouver vos relances (ou, pour Roll20, utilisez ce",
+    "bookmarklet_link": "Solveur de dés 7th Sea",
+    "between_links": "bookmarklet, ou",
+    "userscript_link": "ce script utilisateur Tampermonkey pour Firefox",
+    "suffix": ")"
+  },
+  "form": {
+    "dice_roll": "Jet de dés :",
+    "placeholder": "Entrez les valeurs des dés (séparées par des virgules)\\nExemple : 7, 7, 8, 5, 3, 6",
+    "example": "Exemple : 7, 7, 8, 5, 3, 6",
+    "find_tens": "Trouver les dizaines",
+    "find_fifteens": "Trouver les quinzaines"
+  },
+  "language": {
+    "label": "Langue",
+    "en": "English",
+    "fr": "Français"
+  },
+  "loading": {
+    "aria": "Animation de progression",
+    "text": "Réorganisation des dés..."
+  },
+  "results": {
+    "announcement_one": "1 relance",
+    "announcement_other": "{{count}} relances",
+    "warning_label": "Attention :",
+    "warning_timeout": "Le solveur a atteint la limite de temps. La solution n'est peut-être pas optimale.",
+    "mode_tens": "Mode dizaines",
+    "mode_fifteens": "Mode dizaines ou quinzaines",
+    "score_label": "Score :",
+    "raise_one": "relance",
+    "raise_other": "relances",
+    "optimisations_title": "Succès garantis pré-résolus : {{groups}}",
+    "static": {
+      "standard_mode": "Mode standard (≥10 = 1 succès)",
+      "fifteens_mode": "Mode quinzaines (≥15 = 2, ≥10 = 1)",
+      "raises": "Relances :",
+      "groupings": "Groupements :"
+    }
+  },
+  "errors": {
+    "title": "Erreur",
+    "enter_dice": "Veuillez saisir des valeurs de dés",
+    "no_dice": "Aucun dé fourni",
+    "invalid_die": "Valeur de dé invalide : {{value}}. Elle doit être comprise entre 1 et 10.",
+    "generic": "Une erreur est survenue pendant la résolution"
+  },
+  "bookmarklet": {
+    "instructions": "Pour utiliser ce bookmarklet, faites-le glisser dans votre barre de favoris, ou faites un clic droit et choisissez \"Ajouter ce lien aux favoris\"."
+  },
+  "footer": {
+    "solver_credit": "Solveur de dés © Peter Wright"
+  }
+}

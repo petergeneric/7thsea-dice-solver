@@ -19,6 +19,14 @@ import {Model} from 'https://cdn.jsdelivr.net/npm/minizinc/dist/minizinc.mjs';
 
 const SOLVE_BUDGET = 20000; // 20 seconds
 const PERMIT_OPTIMISATIONS = true;
+let lastRenderedState = null;
+
+function t(key, options = {}) {
+  if (window.i18next && typeof window.i18next.t === 'function') {
+    return window.i18next.t(key, options);
+  }
+  return options.defaultValue || key;
+}
 
 // MiniZinc model template - ported from Node.js version
 function getMiniZincModel(dice, allowFifteens) {
@@ -267,10 +275,11 @@ async function solve(dice, allowFifteens) {
 
 
 function showError(message) {
+  lastRenderedState = {type: 'error', message};
   const resultsDiv = document.getElementById('results');
   resultsDiv.innerHTML = `
             <div class="result-section error show">
-                <div class="result-title">Error</div>
+                <div class="result-title">${t('errors.title', {defaultValue: 'Error'})}</div>
                 <p>${message}</p>
             </div>
     `;
@@ -279,11 +288,21 @@ function showError(message) {
 }
 
 function showResults(dice, allowFifteens, result) {
+  lastRenderedState = {
+    type: 'result',
+    dice: [...dice],
+    allowFifteens: allowFifteens,
+    result: result
+  };
+
   const resultsDiv = document.getElementById('results');
   const announcement = document.getElementById('results-announcement');
 
   // Announce success count to screen readers
-  const successText = result.score === 1 ? '1 Raise' : `${result.score} Raises`;
+  const successText = t('results.announcement_other', {
+    count: result.score,
+    defaultValue: result.score === 1 ? '1 Raise' : `${result.score} Raises`
+  });
   if (announcement) {
     announcement.textContent = successText;
   }
@@ -294,15 +313,23 @@ function showResults(dice, allowFifteens, result) {
   if (result.timeout) {
     html += `
             <div class="timeout-warning">
-                <strong>Warning:</strong> Solver reached time limit. Solution may not be optimal.
+                <strong>${t('results.warning_label', {defaultValue: 'Warning:'})}</strong> ${t('results.warning_timeout', {defaultValue: 'Solver reached time limit. Solution may not be optimal.'})}
             </div>
         `;
   }
 
+  const modeText = allowFifteens
+    ? t('results.mode_fifteens', {defaultValue: 'Tens or Fifteens Mode'})
+    : t('results.mode_tens', {defaultValue: 'Tens Mode'});
+  const raiseText = t('results.raise_other', {
+    count: result.score,
+    defaultValue: result.score === 1 ? 'Raise' : 'Raises'
+  });
+
   html += `
         <div class="result-section show">
-            <div class="result-title">${allowFifteens ? 'Tens or Fifteens' : 'Tens'} Mode</div>
-            <div class="score">Score: ${result.score} ${result.score === 1 ? 'Raise' : 'Raises'}</div>
+            <div class="result-title">${modeText}</div>
+            <div class="score">${t('results.score_label', {defaultValue: 'Score:'})} ${result.score} ${raiseText}</div>
             <div class="groups">
                 ${result.groups.map(group => {
     const sum = group.reduce((a, b) => a + b, 0);
@@ -318,7 +345,11 @@ function showResults(dice, allowFifteens, result) {
   // If optimisations were performed, let advanced users see what they were (mostly for troubleshooting...)
   if (result.optimisations && result.optimisations.reserved.length > 0) {
     try {
-      resultsDiv.querySelector('.score').title = `Pre-solved guaranteed successes: ${result.optimisations.reserved.map(g => '[' + g.join(',') + ']').join(', ')}`;
+      const groups = result.optimisations.reserved.map(g => '[' + g.join(',') + ']').join(', ');
+      resultsDiv.querySelector('.score').title = t('results.optimisations_title', {
+        groups: groups,
+        defaultValue: `Pre-solved guaranteed successes: ${groups}`
+      });
     }
     catch(e) {
       // ignore
@@ -344,7 +375,7 @@ window.solveDice = async function (allowFifteens = false, solveBtn) {
 
   // Validate input
   if (!diceInput.trim()) {
-    showError('Please enter dice values');
+    showError(t('errors.enter_dice', {defaultValue: 'Please enter dice values'}));
     return;
   }
 
@@ -354,7 +385,10 @@ window.solveDice = async function (allowFifteens = false, solveBtn) {
     const dice = diceInput.replace(/[^0-9+,]/g, '').replace(/\++/g, ',').replace(/,+$/, '').split(',').map(d => {
       const num = parseInt(d.trim());
       if (isNaN(num) || num < 1 || num > 10) {
-        throw new Error(`Invalid die value: ${d}. Must be between 1 and 10.`);
+        throw new Error(t('errors.invalid_die', {
+          value: d,
+          defaultValue: `Invalid die value: ${d}. Must be between 1 and 10.`
+        }));
       }
       return num;
     });
@@ -366,7 +400,7 @@ window.solveDice = async function (allowFifteens = false, solveBtn) {
     }
 
     if (dice.length === 0) {
-      showError('No dice provided');
+      showError(t('errors.no_dice', {defaultValue: 'No dice provided'}));
     }
     else {
 
@@ -382,7 +416,7 @@ window.solveDice = async function (allowFifteens = false, solveBtn) {
   }
   catch (error) {
     console.error('Error solving:', error);
-    showError(error.message || 'An error occurred while solving');
+    showError(error.message || t('errors.generic', {defaultValue: 'An error occurred while solving'}));
   }
   finally {
     // Stop dice animation and hide loading
@@ -393,3 +427,19 @@ window.solveDice = async function (allowFifteens = false, solveBtn) {
     solveBtn.disabled = false;
   }
 };
+
+document.addEventListener('i18n:languageChanged', () => {
+  const resultsDiv = document.getElementById('results');
+  if (!resultsDiv || !resultsDiv.classList.contains('show') || !lastRenderedState) {
+    return;
+  }
+
+  if (lastRenderedState.type === 'error') {
+    showError(lastRenderedState.message);
+    return;
+  }
+
+  if (lastRenderedState.type === 'result') {
+    showResults(lastRenderedState.dice, lastRenderedState.allowFifteens, lastRenderedState.result);
+  }
+});

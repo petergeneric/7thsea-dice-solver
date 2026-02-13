@@ -18,7 +18,49 @@
     <meta name="twitter:title" content="7th Sea Dice Solver">
     <meta name="twitter:description" content="A constraint solver for 7th Sea 2nd Edition TTRPG. Quickly find the best dice groupings to maximise your raises.">
     <meta name="twitter:image" content="https://petergeneric.github.io/7thsea-dice-solver/screenshot.jpg">
+    <script>
+      (function () {
+        function normaliseLanguage(value) {
+          if (!value || typeof value !== 'string') return null;
+          const lower = value.toLowerCase();
+          if (lower.startsWith('fr')) return 'fr';
+          if (lower.startsWith('en')) return 'en';
+          return null;
+        }
+
+        let preferred = null;
+        try {
+          preferred = normaliseLanguage(localStorage.getItem('langOverride'));
+        } catch (e) {
+          // ignore storage issues
+        }
+
+        if (!preferred) {
+          const langs = Array.isArray(navigator.languages) && navigator.languages.length
+            ? navigator.languages
+            : [navigator.language || 'en'];
+          for (const lang of langs) {
+            const normalised = normaliseLanguage(lang);
+            if (normalised) {
+              preferred = normalised;
+              break;
+            }
+          }
+        }
+
+        if (preferred === 'fr') {
+          document.documentElement.setAttribute('data-i18n-block', '1');
+        }
+      })();
+    </script>
+    <script src="https://cdn.jsdelivr.net/npm/i18next@24.2.3/dist/umd/i18next.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/i18next-http-backend@3.0.2/i18nextHttpBackend.min.js"></script>
+    <script src="i18n.js"></script>
     <style>
+        html[data-i18n-block="1"]:not([data-i18n-ready="1"]) body {
+            visibility: hidden;
+        }
+
         * {
             margin: 0;
             padding: 0;
@@ -58,14 +100,56 @@
 
         h1 {
             color: #333;
-            margin-bottom: 10px;
+            margin-bottom: 0;
             font-size: 2rem;
+        }
+
+        .title-row {
+            display: flex;
+            justify-content: space-between;
+            align-items: flex-start;
+            gap: 12px;
+            margin-bottom: 10px;
         }
 
         .subtitle {
             color: #666;
             margin-bottom: 30px;
             font-size: 0.95rem;
+        }
+
+        .lang-row {
+            display: flex;
+            gap: 8px;
+            align-items: center;
+        }
+
+        .lang-buttons {
+            display: inline-flex;
+            gap: 6px;
+        }
+
+        .lang-btn {
+            padding: 6px 10px;
+            border-radius: 6px;
+            border: 1px solid transparent;
+            background: white;
+            color: #444;
+            min-width: 40px;
+            text-align: center;
+            cursor: pointer;
+            font-size: 18px;
+            line-height: 1;
+        }
+
+        .lang-btn:hover,
+        .lang-btn:focus-visible {
+            border-color: #d3d3d3;
+        }
+
+        .lang-btn.active {
+            border-color: #0b5394;
+            box-shadow: 0 0 0 2px rgba(11, 83, 148, 0.15);
         }
 
         label {
@@ -364,55 +448,64 @@
     </head>
 <body>
     <div class="container">
-        <h1>7th Sea Dice Solver</h1>
-        <p class="subtitle"><em>Avast!</em> Enter thon dice roll to find yer raises (or for Roll20 use this <a id="roll20_bookmarklet" href="#">7th Sea Dice Solver</a> bookmarklet, or <a href="roll20.userscript.js">this Firefox Tampermonkey User Script</a>)</p>
+        <div class="title-row">
+            <h1 data-i18n="app.title">7th Sea Dice Solver</h1>
+            <div class="lang-row">
+                <div class="lang-buttons" role="group" aria-label="Language selector">
+                    <button type="button" class="lang-btn" data-lang="en" aria-label="English" title="English">🇬🇧</button>
+                    <button type="button" class="lang-btn" data-lang="fr" aria-label="Français" title="Français">🇫🇷</button>
+                </div>
+            </div>
+        </div>
+        <p class="subtitle"><em data-i18n="subtitle.avast">Avast!</em> <span data-i18n="subtitle.prefix">Enter thon dice roll to find yer raises (or for Roll20 use this</span> <a id="roll20_bookmarklet" href="#" data-i18n="subtitle.bookmarklet_link">7th Sea Dice Solver</a> <span data-i18n="subtitle.between_links">bookmarklet, or</span> <a href="roll20.userscript.js" data-i18n="subtitle.userscript_link">this Firefox Tampermonkey User Script</a><span data-i18n="subtitle.suffix">)</span></p>
 
         <form id="diceForm">
-            <label for="diceInput">Dice Roll:</label>
+            <label for="diceInput" data-i18n="form.dice_roll">Dice Roll:</label>
             <textarea
                 id="diceInput"
+                data-i18n-placeholder="form.placeholder"
                 placeholder="Enter dice values (comma-separated)&#10;Example: 7, 7, 8, 5, 3, 6"
                 rows="4"
             ></textarea>
-            <div class="example">Example: 7, 7, 8, 5, 3, 6</div>
+            <div class="example" data-i18n="form.example">Example: 7, 7, 8, 5, 3, 6</div>
 
             <div style="display: flex; gap: 10px; margin-top: 20px;">
-                <button type="button" id="findTensBtn" style="flex: 1;">Find Tens</button>
-                <button type="button" id="findFifteensBtn" style="flex: 1;">Find Fifteens</button>
+                <button type="button" id="findTensBtn" style="flex: 1;" data-i18n="form.find_tens">Find Tens</button>
+                <button type="button" id="findFifteensBtn" style="flex: 1;" data-i18n="form.find_fifteens">Find Fifteens</button>
             </div>
         </form>
 
         <div class="error" id="error" role="alert"></div>
 
-        <div class="loading" id="loading" aria-live="polite" aria-label="Progress animation">
+        <div class="loading" id="loading" aria-live="polite" data-i18n-aria-label="loading.aria" aria-label="Progress animation">
             <div id="dice-animation">
                 <div id="dice-animation-top-row"></div>
                 <div id="dice-animation-groups"></div>
                 <div id="dice-animation-dice"></div>
             </div>
-            <div class="loading-text">Rearranging dice...</div>
+            <div class="loading-text" data-i18n="loading.text">Rearranging dice...</div>
         </div>
 
         <div id="results-announcement" class="sr-only" aria-live="assertive" aria-atomic="true"></div>
         <div class="results" id="results" aria-live="polite">
             <div class="result-section" id="result10">
-                <h3>Standard Mode (≥10 = 1 success)</h3>
+                <h3 data-i18n="results.static.standard_mode">Standard Mode (≥10 = 1 success)</h3>
                 <div class="result-item">
-                    <strong>Raises:</strong> <span class="success-count" id="tens"></span>
+                    <strong data-i18n="results.static.raises">Raises:</strong> <span class="success-count" id="tens"></span>
                 </div>
                 <div class="result-item">
-                    <strong>Groupings:</strong>
+                    <strong data-i18n="results.static.groupings">Groupings:</strong>
                     <div class="groups" id="groups10"></div>
                 </div>
             </div>
 
             <div class="result-section" id="result15">
-                <h3>Fifteens Mode (≥15 = 2, ≥10 = 1)</h3>
+                <h3 data-i18n="results.static.fifteens_mode">Fifteens Mode (≥15 = 2, ≥10 = 1)</h3>
                 <div class="result-item">
-                    <strong>Raises:</strong> <span class="success-count" id="fifteens"></span>
+                    <strong data-i18n="results.static.raises">Raises:</strong> <span class="success-count" id="fifteens"></span>
                 </div>
                 <div class="result-item">
-                    <strong>Groupings:</strong>
+                    <strong data-i18n="results.static.groupings">Groupings:</strong>
                     <div class="groups" id="groups15"></div>
                 </div>
             </div>
@@ -420,12 +513,19 @@
         
         <footer>
             <a href="https://www.drivethrurpg.com/en/product/185462/7th-sea-core-rulebook-second-edition" target="_blank" rel="noopener noreferrer">7th Sea &copy; Chaosium</a> &middot;
-            <a href="https://github.com/petergeneric" target="_blank" rel="noopener noreferrer">Dice Solver &copy; Peter Wright</a>
+            <a href="https://github.com/petergeneric" target="_blank" rel="noopener noreferrer" data-i18n="footer.solver_credit">Dice Solver &copy; Peter Wright</a>
         </footer>
     </div>
 
     <script>
-      document.addEventListener('DOMContentLoaded', () => {
+      document.addEventListener('DOMContentLoaded', async () => {
+        if (window.i18nReadyPromise) {
+          try {
+            await window.i18nReadyPromise;
+          } catch (error) {
+            console.error('i18n failed to initialize:', error);
+          }
+        }
 
         // Dice animation functions
         let diceAnimationState = {
@@ -750,7 +850,7 @@
         bookmarkletEl.href = `javascript:(${encodeURIComponent(bookmarklet.toString().replace(/[\r\n\s]+/g, ' '))})()`
         bookmarkletEl.addEventListener('click', (e) => {
           e.preventDefault();
-          alert('To use this bookmarklet, drag it to your bookmarks bar, or right-click and choose "Bookmark This Link".');
+          alert(window.t ? window.t('bookmarklet.instructions') : 'To use this bookmarklet, drag it to your bookmarks bar, or right-click and choose "Bookmark This Link".');
         });
       });
     </script>
