@@ -652,10 +652,11 @@
 
         // Initialize on page load
 
-        // Extract URL parameters
+        // Extract URL parameters (supports both ?key=val and #key=val)
         function getUrlParameter(name) {
-          const urlParams = new URLSearchParams(window.location.search);
-          return urlParams.get(name);
+          const queryParams = new URLSearchParams(window.location.search);
+          const hashParams = new URLSearchParams(window.location.hash.replace(/^#/, ''));
+          return queryParams.get(name) ?? hashParams.get(name);
         }
 
         const diceParam = getUrlParameter('dice');
