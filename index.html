@@ -662,8 +662,9 @@
         if (diceParam) {
           // Pre-populate the textarea with URL parameter
           document.getElementById('diceInput').value = diceParam.replace(/[^0-9+,]/g, '').replace(/\++/, ',').replace(/,+$/, '');
-          // Automatically solve (default to tens mode)
-          solveDice(false, findTensBtn);
+          // Automatically solve (default to tens mode, allow mode=fifteens)
+          const allowFifteens = getUrlParameter('mode') === 'fifteens';
+          solveDice(allowFifteens, allowFifteens ? findFifteensBtn : findTensBtn);
         } else {
           // Focus the input for quick entry
           document.getElementById('diceInput').focus();
