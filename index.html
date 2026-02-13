@@ -679,6 +679,17 @@
                 return text.replace(/[^0-9+,]/g, '').replace(/\++/, ',').replace(/,+$/, '');
               }
 
+              function getSkillRank(el) {
+                try {
+                  const formulaEl = el.closest('.message')?.querySelector('.formula:not(.formattedformula)');
+                  if (!formulaEl) return null;
+                  const match = formulaEl.textContent.match(/\((\d+)/);
+                  return match ? parseInt(match[1], 10) : null;
+                } catch (e) {
+                  return null;
+                }
+              }
+
               if (el.style.cursor === 'help')
                 return;
               else
@@ -686,7 +697,13 @@
 
               el.addEventListener('click', (e) => {
                 e.preventDefault();
-                window.open(`https://petergeneric.github.io/7thsea-dice-solver/#dice=${encodeURIComponent(cleanText(el.innerText))}`, '_blank').opener = null;
+                const params = new URLSearchParams();
+                params.set('dice', cleanText(el.innerText));
+                const skillRank = getSkillRank(el);
+                if (skillRank !== null && skillRank >= 4) {
+                  params.set('mode', 'fifteens');
+                }
+                window.open(`https://petergeneric.github.io/7thsea-dice-solver/#${params}`, '_blank').opener = null;
               });
             }
 
