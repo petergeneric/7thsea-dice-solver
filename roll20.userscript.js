@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name        Roll20 7th Sea Dice Helper
 // @namespace   https://petergeneric.github.io
-// @version     1.2
+// @version     1.3
 // @description Roll20 7th Sea Dice Rolling Solver Integration Plugin
 // @author      Peter Wright
 // @match       https://app.roll20.net/editor
@@ -59,7 +59,7 @@
 
           el.addEventListener('click', (e) => {
             e.preventDefault();
-            window.open(`https://petergeneric.github.io/7thsea-dice-solver/?dice=${encodeURIComponent(cleanText(el.innerText))}`, '_blank').opener = null;
+            window.open(`https://petergeneric.github.io/7thsea-dice-solver/#dice=${encodeURIComponent(cleanText(el.innerText))}`, '_blank').opener = null;
           });
         }
 
