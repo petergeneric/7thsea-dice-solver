@@ -725,7 +725,12 @@
           })();
         }
 
-        document.getElementById("roll20_bookmarklet").href = `javascript:(${encodeURIComponent(bookmarklet.toString().replace(/[\r\n\s]+/g, ' '))})()`
+        const bookmarkletEl = document.getElementById("roll20_bookmarklet");
+        bookmarkletEl.href = `javascript:(${encodeURIComponent(bookmarklet.toString().replace(/[\r\n\s]+/g, ' '))})()`
+        bookmarkletEl.addEventListener('click', (e) => {
+          e.preventDefault();
+          alert('To use this bookmarklet, drag it to your bookmarks bar, or right-click and choose "Bookmark This Link".');
+        });
       });
     </script>
     
