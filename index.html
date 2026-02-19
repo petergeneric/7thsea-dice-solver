@@ -55,7 +55,7 @@
     </script>
     <script src="https://cdn.jsdelivr.net/npm/i18next@24.2.3/dist/umd/i18next.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/i18next-http-backend@3.0.2/i18nextHttpBackend.min.js"></script>
-    <script src="i18n.js"></script>
+    <script src="i18n.v2.js"></script>
     <style>
         html[data-i18n-block="1"]:not([data-i18n-ready="1"]) body {
             visibility: hidden;
@@ -118,38 +118,20 @@
             font-size: 0.95rem;
         }
 
-        .lang-row {
-            display: flex;
-            gap: 8px;
-            align-items: center;
-        }
-
-        .lang-buttons {
-            display: inline-flex;
-            gap: 6px;
-        }
-
-        .lang-btn {
-            padding: 6px 10px;
-            border-radius: 6px;
-            border: 1px solid transparent;
+        .lang-select {
+            padding: 2px 4px;
+            border-radius: 4px;
+            border: 1px solid #ccc;
             background: white;
-            color: #444;
-            min-width: 40px;
-            text-align: center;
+            color: #666;
+            font-size: 0.75rem;
             cursor: pointer;
-            font-size: 18px;
-            line-height: 1;
+            outline: none;
         }
 
-        .lang-btn:hover,
-        .lang-btn:focus-visible {
-            border-color: #d3d3d3;
-        }
-
-        .lang-btn.active {
-            border-color: #0b5394;
-            box-shadow: 0 0 0 2px rgba(11, 83, 148, 0.15);
+        .lang-select:hover,
+        .lang-select:focus-visible {
+            border-color: #999;
         }
 
         label {
@@ -493,12 +475,10 @@
     <div class="container">
         <div class="title-row">
             <h1 data-i18n="app.title">7th Sea Dice Solver</h1>
-            <div class="lang-row">
-                <div class="lang-buttons" role="group" aria-label="Language selector">
-                    <button type="button" class="lang-btn" data-lang="en" aria-label="English" title="English">🇬🇧</button>
-                    <button type="button" class="lang-btn" data-lang="fr" aria-label="Français" title="Français">🇫🇷</button>
-                </div>
-            </div>
+            <select class="lang-select" aria-label="Language">
+                <option value="en">English</option>
+                <option value="fr">Fran&#231;ais</option>
+            </select>
         </div>
         <p class="subtitle"><em data-i18n="subtitle.avast">Avast!</em> <span data-i18n="subtitle.prefix">Enter thon dice roll to find yer raises (or for Roll20 use this</span> <a id="roll20_bookmarklet" href="#" data-i18n="subtitle.bookmarklet_link">7th Sea Dice Solver</a> <span data-i18n="subtitle.between_links">bookmarklet, or</span> <a href="roll20.userscript.js" data-i18n="subtitle.userscript_link">this Firefox Tampermonkey User Script</a><span data-i18n="subtitle.suffix">)</span></p>
 

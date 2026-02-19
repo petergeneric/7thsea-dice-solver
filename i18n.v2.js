@@ -49,28 +49,11 @@
     }
   }
 
-  function shouldUseIrishEnglishFlag() {
-    const tz = Intl.DateTimeFormat().resolvedOptions().timeZone || '';
-    if (tz === 'Europe/Dublin') {
-      return true;
+  function updateLangSelect() {
+    const select = document.querySelector('.lang-select');
+    if (select) {
+      select.value = window.i18next.language;
     }
-
-    const locales = Array.isArray(navigator.languages) && navigator.languages.length
-      ? navigator.languages
-      : [navigator.language || ''];
-    if (locales.some((locale) => typeof locale === 'string' && locale.toLowerCase() === 'en-ie')) {
-      return true;
-    }
-
-    return false;
-  }
-
-  function updateEnglishFlagIcon() {
-    const englishButton = document.querySelector('.lang-btn[data-lang="en"]');
-    if (!englishButton) {
-      return;
-    }
-    englishButton.textContent = shouldUseIrishEnglishFlag() ? '🇮🇪' : '🇬🇧';
   }
 
   function captureDefaultDomValues() {
@@ -142,15 +125,7 @@
       }
     });
 
-    const activeLang = window.i18next.language;
-    document.querySelectorAll('.lang-btn[data-lang]').forEach((button) => {
-      const lang = normaliseLanguage(button.getAttribute('data-lang'));
-      const isActive = lang === activeLang;
-      button.classList.toggle('active', isActive);
-      button.setAttribute('aria-pressed', isActive ? 'true' : 'false');
-    });
-
-    updateEnglishFlagIcon();
+    updateLangSelect();
   }
 
   function waitForDom() {
@@ -198,13 +173,14 @@
 
       translateDom();
 
-      document.querySelectorAll('.lang-btn[data-lang]').forEach((button) => {
-        button.addEventListener('click', async () => {
-          const nextLang = normaliseLanguage(button.getAttribute('data-lang')) || 'en';
+      const langSelect = document.querySelector('.lang-select');
+      if (langSelect) {
+        langSelect.addEventListener('change', async () => {
+          const nextLang = normaliseLanguage(langSelect.value) || 'en';
           await window.i18next.changeLanguage(nextLang);
           setLanguageOverride(nextLang);
         });
-      });
+      }
 
       window.i18next.on('languageChanged', () => {
         translateDom();
