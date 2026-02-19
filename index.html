@@ -288,6 +288,37 @@
             background: rgba(11, 83, 148, 0.7);
             color: white;
         }
+
+        .dice-input-hints {
+            display: flex;
+            gap: 6px;
+            margin-top: 5px;
+            align-items: stretch;
+        }
+
+        .dice-input-hints .example {
+            margin-top: 0;
+            flex: 1;
+        }
+
+        .plus-one-btn {
+            background: transparent;
+            padding: 8px 12px;
+            border-radius: 6px;
+            font-size: 0.85rem;
+            font-weight: 600;
+            color: #0b5394;
+            cursor: pointer;
+            border: 2px solid #0b5394;
+            transition: background-color 0.2s, color 0.2s, transform 0.2s;
+            white-space: nowrap;
+        }
+
+        .plus-one-btn:hover {
+            background: linear-gradient(-45deg, #0b5394 0%, #00838f 100%);
+            color: white;
+            transform: scale(1.05);
+        }
         .groups {
             display: flex;
             flex-wrap: wrap;
@@ -479,7 +510,10 @@
                 placeholder="Enter dice values (comma-separated)&#10;Example: 7, 7, 8, 5, 3, 6"
                 rows="4"
             ></textarea>
-            <div class="example" data-i18n="form.example">Example: 7, 7, 8, 5, 3, 6</div>
+            <div class="dice-input-hints">
+                <div class="example" data-i18n="form.example">Example: 7, 7, 8, 5, 3, 6</div>
+                <button type="button" id="plusOneBtn" class="plus-one-btn" title="Add 1 to each die (e.g. Academy/University)">+1</button>
+            </div>
 
             <div style="display: flex; gap: 10px; margin-top: 20px;">
                 <button type="button" id="findTensBtn" style="flex: 1;" data-i18n="form.find_tens">Find Tens</button>
@@ -784,6 +818,29 @@
           inputEl.focus();
         });
 
+        // Handle +1 button click
+        document.getElementById('plusOneBtn').addEventListener('click', async () => {
+          const inputEl = document.getElementById('diceInput');
+          const raw = inputEl.value.trim();
+          if (!raw) return;
+          const values = raw.replace(/[^0-9+,]/g, '').replace(/\++/g, ',').replace(/,+$/, '').split(',')
+            .map(d => parseInt(d.trim()))
+            .filter(n => !isNaN(n));
+          if (values.length === 0) return;
+          const incremented = values.map(v => Math.min(v + 1, 11));
+          inputEl.value = incremented.join(', ');
+
+          // Re-run solver if a solve has completed or is currently running
+          const resultsEl = document.getElementById('results');
+          const hasResults = resultsEl?.classList.contains('show');
+          const isRunning = document.getElementById('loading')?.classList.contains('show');
+          if (hasResults || isRunning) {
+            const wasFifteens = resultsEl.dataset.lastMode === 'fifteens';
+            const btn = wasFifteens ? findFifteensBtn : findTensBtn;
+            await solveDice(wasFifteens, btn);
+          }
+        });
+
         // Initialize on page load
 
         // Extract URL parameters (supports both ?key=val and #key=val)
@@ -868,6 +925,6 @@
       });
     </script>
     
-    <script type="module" src="solver.v9.js"></script>
+    <script type="module" src="solver.v10.js"></script>
 </body>
 </html>

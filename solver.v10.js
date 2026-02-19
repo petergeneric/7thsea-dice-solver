@@ -35,7 +35,7 @@ function getMiniZincModel(dice, allowFifteens) {
 %
 
 int: n_dice = ${dice.length};
-array[1..n_dice] of 1..10: dice = [${dice.join(', ')}];
+array[1..n_dice] of 1..11: dice = [${dice.join(', ')}];
 bool: allow_fifteens = ${allowFifteens};
 
 % Upper bound on number of groups (best case is all tens)
@@ -363,6 +363,7 @@ window.solveDice = async function (allowFifteens = false, solveBtn) {
   // Hide existing results
   const resultsDiv = document.getElementById('results');
   resultsDiv.classList.remove('show');
+  resultsDiv.dataset.lastMode = allowFifteens ? 'fifteens' : 'tens';
 
   // Clear screen reader announcement for fresh announcement on new result
   const announcement = document.getElementById('results-announcement');
@@ -384,10 +385,10 @@ window.solveDice = async function (allowFifteens = false, solveBtn) {
     // Parse and validate dice first
     const dice = diceInput.replace(/[^0-9+,]/g, '').replace(/\++/g, ',').replace(/,+$/, '').split(',').map(d => {
       const num = parseInt(d.trim());
-      if (isNaN(num) || num < 1 || num > 10) {
+      if (isNaN(num) || num < 1 || num > 11) {
         throw new Error(t('errors.invalid_die', {
           value: d,
-          defaultValue: `Invalid die value: ${d}. Must be between 1 and 10.`
+          defaultValue: `Invalid die value: ${d}. Must be between 1 and 11.`
         }));
       }
       return num;
